@@ -2,8 +2,8 @@
 
 namespace App\Controllers;
 
-use App\Controllers\Repositories\CSVRepository;
-use App\Controllers\Repositories\MYSQLRepository;
+use App\Repositories\CSVRepository;
+use App\Repositories\MYSQLRepository;
 
 class TasksController
 {

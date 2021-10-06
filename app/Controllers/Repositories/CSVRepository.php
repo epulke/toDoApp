@@ -51,7 +51,7 @@ class CSVRepository implements Repository
         return $search;
     }
 
-    public function deleteTask(int $id): array
+    public function deleteTask(int $id): void
     {
         $collection = $this->downloadTasks();
 
@@ -66,6 +66,5 @@ class CSVRepository implements Repository
         }
         $writer = Writer::createFromPath($this->path, 'w+');
         $writer->insertAll($search);
-        return $search;
     }
 }

@@ -10,5 +10,5 @@ interface Repository
     public function downloadTasks(): TasksCollection;
     public function uploadNewTask(int $id, string $description): void;
     public function searchTask(int $id): Task;
-    public function deleteTask(int $id): array;
+    public function deleteTask(int $id): void;
 }

@@ -2,11 +2,24 @@
 
 require_once "vendor/autoload.php";
 
+session_start();
+
+
 $dispatcher = FastRoute\simpleDispatcher(function(FastRoute\RouteCollector $r) {
     $r->addRoute('GET', '/tasks', 'TasksController@showTasks');
     $r->addRoute('POST', '/tasks', 'TasksController@addNewTask');
     $r->addRoute('GET', '/tasks/searchResults', 'TasksController@searchTask');
     $r->addRoute('POST', '/tasks/searchResults', 'TasksController@deleteTask');
+
+    $r->addRoute('POST', '/registration', 'UsersController@addUser');
+    $r->addRoute('GET', '/registration', 'UsersController@registrationForm');
+    $r->addRoute('POST', '/signin', 'UsersController@signInUser');
+    $r->addRoute('GET', '/signin', 'UsersController@signInForm');
+    $r->addRoute('GET', '/welcome', 'UsersController@signInSuccessful');
+    $r->addRoute('GET', '/user', 'UsersController@userInfo');
+    $r->addRoute('POST', '/user', 'UsersController@signOut');
+
+
 });
 
 // Fetch method and URI from somewhere
@@ -37,3 +50,4 @@ switch ($routeInfo[0]) {
         $controller->$method();
         break;
 }
+

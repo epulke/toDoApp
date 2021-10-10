@@ -7,13 +7,19 @@ use App\Models\Collections\TasksCollection;
 use App\Models\Task;
 use PDO;
 
-class MYSQLRepository implements Repository
+class MYSQLTasksRepository implements TasksRepository
 {
     private PDO $pdo;
 
-    public function __construct()
+    public function __construct($config)
     {
-        $this->pdo = new PDO("mysql:host=127.0.0.1;dbname=Tasks", "root", "");
+        $this->pdo = new PDO(
+            $config["connection"].";dbname=".$config["name"],
+            $config["username"],
+            $config["password"],
+            $config["options"]
+        );
+
     }
 
     public function downloadTasks(): TasksCollection

@@ -2,15 +2,23 @@
 
 namespace App\Controllers;
 
-use App\Repositories\CSVRepository;
-use App\Repositories\MYSQLRepository;
+use App\Repositories\MYSQLTasksRepository;
+use App\Repositories\TasksRepository;
 
 class TasksController
 {
+    private TasksRepository $repository;
+
+    public function __construct()
+    {
+        $config = require_once "config.php";
+        $this->repository = new MYSQLTasksRepository($config);
+    }
+
     public function showTasks()
     {
 
-        $tasks = (new MYSQLRepository())->downloadTasks();
+        $tasks = $this->repository->downloadTasks();
 
         require_once "app/Views/tasks.view.php";
     }
@@ -19,7 +27,7 @@ class TasksController
     {
         if(isset($_POST["submit"]))
         {
-            (new MYSQLRepository())
+            $this->repository
                 ->uploadNewTask($_POST["number"], $_POST["description"]);
         }
 
@@ -30,7 +38,7 @@ class TasksController
     {
         if(isset($_GET["search"]))
         {
-            $search = (new MYSQLRepository())
+            $search = $this->repository
                 ->searchTask((int) $_GET["numberSearch"]);
         }
         require_once "app/Views/search.view.php";
@@ -40,7 +48,7 @@ class TasksController
     {
         if(isset($_POST["delete"]))
         {
-            (new MYSQLRepository())
+            $this->repository
                 ->deleteTask($_POST["deleteNumber"]);
         }
 

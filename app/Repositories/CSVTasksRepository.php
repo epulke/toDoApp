@@ -8,7 +8,7 @@ use League\Csv\Reader;
 use League\Csv\Statement;
 use League\Csv\Writer;
 
-class CSVRepository implements Repository
+class CSVTasksRepository implements TasksRepository
 {
     private string $path;
 

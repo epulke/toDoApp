@@ -2,24 +2,29 @@
 
 namespace App\Controllers;
 
+use App\Exceptions\FormValidationException;
+use App\Exceptions\SignInValidationException;
 use App\Models\User;
 use App\Repositories\MysqlUsersRepository;
 use App\Repositories\UsersRepository;
-
+use App\UserValidation;
 
 
 class UsersController
 {
     private UsersRepository $repository;
+    private UserValidation $userValidator;
 
     public function __construct()
     {
         $config = require_once "config.php";
         $this->repository = new MysqlUsersRepository($config);
+        $this->userValidator = new UserValidation();
     }
 
     public function registrationForm()
     {
+        var_dump($_SESSION["_errors"]);
         require_once "app/Views/registration.view.php";
     }
 
@@ -27,10 +32,8 @@ class UsersController
     {
         if (isset($_POST["register"]))
         {
-            if ($_POST["password1"] !== $_POST["password2"])
-            {
-                $message = "<p class='text-center text-danger'>Passwords do not match.</p>";
-            } else {
+            try {
+                $this->userValidator->confirmedPasswordValidation($_POST["password1"], $_POST["password2"]);
                 $user = new User(
                     $_POST["name"],
                     $_POST["surname"],
@@ -38,41 +41,43 @@ class UsersController
                     $_POST["password2"]
                 );
                 $this->repository->addUser($user);
-                $message = "<p class='text-center text-primary'>Your registration was successful.</p>";
+                header("Location: /signin");
+            } catch (FormValidationException $error) {
+                $_SESSION["_errors"] = $this->userValidator->getErrors();
+                header("Location: /registration");
             }
-            require_once "app/Views/registration.view.php";
         }
     }
 
     public function signInForm()
     {
-        $error = "";
         require_once "app/Views/signIn.view.php";
     }
 
     public function signInUser()
     {
-        $error = "";
         if (isset($_POST["signIn"]))
         {
             $email = $_POST["email"];
             $password = $_POST["password"];
             $user = $this->repository->searchUser($email);
 
-            if (is_null($user))
-            {
-                $error = "This email is not registered.";
-                require_once "app/Views/signIn.view.php";
+            try {
+                $this->userValidator->userExistsValidation($user);
+            } catch (SignInValidationException $error) {
+                $_SESSION["_errors"] = $this->userValidator->getErrors();
+                header("Location: /signin");
             }
 
-            if (password_verify($password, $user->getPassword())) {
+            try {
+                $this->userValidator->passwordCorrectValidation($password, $user->getPassword());
                 $_SESSION["userName"] = $user->getName();
                 $_SESSION["userSurname"] = $user->getSurname();
                 $_SESSION["userEmail"] = $user->getEmail();
                 header("Location: /welcome");
-            } else {
-                $error = "<p class='text-center text-danger'>Password is incorrect.</p>";
-                require_once "app/Views/signIn.view.php";
+            } catch (SignInValidationException $error) {
+                $_SESSION["_errors"] = $this->userValidator->getErrors();
+                header("Location: /signin");
             }
         }
     }
@@ -91,7 +96,9 @@ class UsersController
     {
         if(isset($_POST["signOut"]))
         {
-            session_destroy();
+            unset($_SESSION["userName"]);
+            unset($_SESSION["userSurname"]);
+            unset($_SESSION["userEmail"]);
             header("Location: /signin");
         }
     }

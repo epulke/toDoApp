@@ -51,3 +51,4 @@ switch ($routeInfo[0]) {
         break;
 }
 
+unset($_SESSION["_errors"]);

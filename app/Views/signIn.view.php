@@ -5,7 +5,16 @@ require_once "header.view.php";
 <div class="col-md-10 col-lg-6 col-xl-5 order-2 order-lg-1">
 
     <p class="text-center h1 fw-bold mb-5 mx-1 mx-md-4 mt-4">Sign In</p>
-    <p class='text-center text-danger'><?php echo $error ?></p>
+    <p class='text-center text-danger'>
+        <?php if(!empty($_SESSION["_errors"]))
+        {
+            foreach ($_SESSION["_errors"] as $error)
+            {
+                echo $error;
+            }
+        }
+        ?>
+    </p>
     <form class="mx-1 mx-md-4" method="post" action="">
 
         <div class="d-flex flex-row align-items-center mb-4">

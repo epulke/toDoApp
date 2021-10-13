@@ -2,8 +2,10 @@
 
 namespace App\Controllers;
 
+use App\Redirect;
 use App\Repositories\MYSQLTasksRepository;
 use App\Repositories\TasksRepository;
+use App\View;
 
 class TasksController
 {
@@ -15,12 +17,18 @@ class TasksController
         $this->repository = new MYSQLTasksRepository($config);
     }
 
-    public function showTasks()
+    public function showTasks(): View
     {
-
         $tasks = $this->repository->downloadTasks();
 
-        require_once "app/Views/tasks.view.php";
+        if (isset($_SESSION["userName"])) {
+            $user = "Hello, " . $_SESSION["userName"] . "!";
+        } else {
+            $user ="";
+        }
+
+        $view = new View("tasks.view.twig", ["tasks" => $tasks->getTasks(), "user" => $user]);
+        return $view;
     }
 
     public function addNewTask()
@@ -31,17 +39,18 @@ class TasksController
                 ->uploadNewTask($_POST["number"], $_POST["description"]);
         }
 
-        header("Location:/tasks");
+        Redirect::url("/tasks");
     }
 
-    public function searchTask()
+    public function searchTask(): View
     {
         if(isset($_GET["search"]))
         {
             $search = $this->repository
                 ->searchTask((int) $_GET["numberSearch"]);
         }
-        require_once "app/Views/search.view.php";
+        $view = new View("search.view.twig", ["search" => $search]);
+        return $view;
     }
 
     public function deleteTask()
@@ -52,6 +61,6 @@ class TasksController
                 ->deleteTask($_POST["deleteNumber"]);
         }
 
-        header("Location:/tasks");
+        Redirect::url("/tasks");
     }
 }

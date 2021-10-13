@@ -5,9 +5,11 @@ namespace App\Controllers;
 use App\Exceptions\FormValidationException;
 use App\Exceptions\SignInValidationException;
 use App\Models\User;
+use App\Redirect;
 use App\Repositories\MysqlUsersRepository;
 use App\Repositories\UsersRepository;
 use App\UserValidation;
+use App\View;
 
 
 class UsersController
@@ -22,10 +24,11 @@ class UsersController
         $this->userValidator = new UserValidation();
     }
 
-    public function registrationForm()
+    public function registrationForm(): View
     {
-        var_dump($_SESSION["_errors"]);
-        require_once "app/Views/registration.view.php";
+        (!empty($_SESSION["_errors"])) ? $errors = $_SESSION["_errors"] : $errors = [];
+        $view = new View("registration.view.twig", ["errors" => $errors]);
+        return $view;
     }
 
     public function addUser()
@@ -41,17 +44,20 @@ class UsersController
                     $_POST["password2"]
                 );
                 $this->repository->addUser($user);
-                header("Location: /signin");
+                Redirect::url("/signin");
             } catch (FormValidationException $error) {
                 $_SESSION["_errors"] = $this->userValidator->getErrors();
-                header("Location: /registration");
+                Redirect::url("/registration");
+                exit;
             }
         }
     }
 
-    public function signInForm()
+    public function signInForm(): View
     {
-        require_once "app/Views/signIn.view.php";
+        (!empty($_SESSION["_errors"])) ? $errors = $_SESSION["_errors"] : $errors = [];
+        $view = new View("signIn.view.twig", ["errors" => $errors]);
+        return $view;
     }
 
     public function signInUser()
@@ -66,7 +72,8 @@ class UsersController
                 $this->userValidator->userExistsValidation($user);
             } catch (SignInValidationException $error) {
                 $_SESSION["_errors"] = $this->userValidator->getErrors();
-                header("Location: /signin");
+                Redirect::url("/signin");
+                exit;
             }
 
             try {
@@ -74,22 +81,27 @@ class UsersController
                 $_SESSION["userName"] = $user->getName();
                 $_SESSION["userSurname"] = $user->getSurname();
                 $_SESSION["userEmail"] = $user->getEmail();
-                header("Location: /welcome");
+                Redirect::url("/welcome");
             } catch (SignInValidationException $error) {
                 $_SESSION["_errors"] = $this->userValidator->getErrors();
-                header("Location: /signin");
+                Redirect::url("/signin");
+                exit;
             }
         }
     }
 
-    public function signInSuccessful()
+    public function signInSuccessful(): View
     {
-        require_once "app/Views/welcome.view.php";
+        return new View("welcome.view.twig", ["user" => $_SESSION["userName"]]);
     }
 
-    public function userInfo()
+    public function userInfo(): View
     {
-        require_once "app/Views/user.view.php";
+        return new View("user.view.twig", [
+            "userName" => $_SESSION["userName"],
+            "userSurname" => $_SESSION["userSurname"],
+            "userEmail" => $_SESSION["userEmail"]
+        ]);
     }
 
     public function signOut()
@@ -99,7 +111,7 @@ class UsersController
             unset($_SESSION["userName"]);
             unset($_SESSION["userSurname"]);
             unset($_SESSION["userEmail"]);
-            header("Location: /signin");
+            Redirect::url("/signin");
         }
     }
 }

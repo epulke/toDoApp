@@ -2,6 +2,10 @@
 
 require_once "vendor/autoload.php";
 
+use App\View;
+use Twig\Environment;
+use Twig\Loader\FilesystemLoader;
+
 session_start();
 
 
@@ -21,6 +25,8 @@ $dispatcher = FastRoute\simpleDispatcher(function(FastRoute\RouteCollector $r) {
 
 
 });
+
+$twig = new Environment(new FilesystemLoader("app/Views"), []);
 
 // Fetch method and URI from somewhere
 $httpMethod = $_SERVER['REQUEST_METHOD'];
@@ -47,8 +53,19 @@ switch ($routeInfo[0]) {
         [$handler, $method] = explode("@", $handler);
         $path = "App\Controllers\\" . $handler;
         $controller = new $path();
-        $controller->$method();
+        $response = $controller->$method();
+
+        if($response instanceof View)
+        {
+            echo $twig->render(
+                /** @var View $response */
+                $response->getPath(),
+                $response->getData()
+            );
+        }
+
         break;
 }
 
 unset($_SESSION["_errors"]);
+
